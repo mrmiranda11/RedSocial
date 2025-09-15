@@ -12,6 +12,7 @@ const FeedPage = () => {
     const location = useLocation();
     const { data } = location.state || {};
     const [posts, setPosts] = useState<any[]>([]);
+    const [comment, setcomment] = useState('');
     const [newPost, setNewPost] = useState('');
     const [userId, setUserId] = useState('');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -53,6 +54,9 @@ const FeedPage = () => {
         setModalOpen(true);
     };
 
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setcomment(e.target.value);
+    };
 
     const handleLike = async (postId: number) => {
 
@@ -104,6 +108,31 @@ const FeedPage = () => {
 
     };
 
+    const handleComent = async (postId: number) => {
+
+        const nuevoComentario = {
+            id: 0,
+            usuario_id: data?.user?.id,
+            post_id: postId,
+            comentario: comment
+        }
+
+        try {
+            const res = await fetch(API_BASE + "coment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(nuevoComentario),
+            });
+            const data = await res.json();
+            console.log("Comentario creado:", data);
+            setRefreshTrigger(prev => prev + 1);
+        } catch (error) {
+            console.error("Error al crear comentario:", error);
+        }
+    };
+
     const toggleComments = (postId: number) => {
         if (!Array.isArray(posts)) return;
 
@@ -112,6 +141,7 @@ const FeedPage = () => {
                 ? { ...post, showcomments: !post.showcomments }
                 : post
         );
+        setcomment("");
         setPosts(updatedPosts);
 
     };
@@ -205,14 +235,6 @@ const FeedPage = () => {
                                     Publicar
                                 </button>
                             </div>
-                            <div className="flex justify-between items-center mt-3">
-
-                                <button onClick={() => openModalWithPost(data)}
-                                    className="w-full p-3 bg-gray-100 rounded-lg border-none resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" >
-                                    Modal
-                                </button>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -298,7 +320,7 @@ const FeedPage = () => {
                                 {post.commentslist.map((comment: any) => (
                                     <div key={comment.id} className="flex space-x-3 mb-3">
                                         <img
-                                            src=""
+                                            src="logo192.png"
                                             alt={comment.usuario}
                                             className="w-8 h-8 rounded-full object-cover"
                                         />
@@ -319,19 +341,22 @@ const FeedPage = () => {
                                 {/* New Comment Input */}
                                 <div className="flex space-x-3 mt-4">
                                     <img
-                                        src=""
+                                        src="/logo192.png"
                                         alt="Tu avatar"
                                         className="w-8 h-8 rounded-full object-cover"
                                     />
                                     <div className="flex-1">
                                         <input
                                             type="text"
+                                            value={comment}
+                                            onChange={handleChange}
                                             placeholder="Escribe un comentario..."
                                             className="w-full p-2 bg-white rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                         />
                                     </div>
                                     <button
                                         type="submit"
+                                        onClick={() => handleComent(post.id)}
                                         className={`w-fit py-1 px-4 rounded-lg font-medium text-white transition duration-200 ${false
                                                 ? 'bg-gray-400 cursor-not-allowed'
                                                 : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transform hover:scale-105'

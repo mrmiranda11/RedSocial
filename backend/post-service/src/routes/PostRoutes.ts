@@ -43,4 +43,13 @@ router.delete('/unlike', async(req: Request, res: Response) => {
   }
 });
 
+router.post('/coment', async(req: Request, res: Response) => {
+  try {
+    const result = await postController.registarComentario(req,res);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 export default router;

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PostData } from '../models/PostData';
 import { LikeData } from '../models/LikeData';
+import { ComentData } from '../models/ComentData';
 
 
 export class PostService {
@@ -62,13 +63,9 @@ export class PostService {
   }
 
   async registrarPost(postData: PostData) {
-
-    // Insertar post
-    console.log("*************registrarPost********");
     
     const result = await this.pool.query(
-      `
-      INSERT INTO posts(usuario, content, image, likes, comments, liked, showcomments)
+      `INSERT INTO posts(usuario, content, image, likes, comments, liked, showcomments)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id, usuario, content, image, likes, comments, liked, showcomments, creado_at
       `,
@@ -104,9 +101,6 @@ export class PostService {
 
   async registrarLike(likeData: LikeData) {
 
-    // Insertar like
-    console.log("*************registrarLike********",likeData);
-    
     const result = await this.pool.query(
       `INSERT INTO likes(usuario_id, post_id, reaction)
         VALUES ($1, $2, $3)
@@ -118,7 +112,7 @@ export class PostService {
         likeData.reaction,
       ]
     );
-    console.log("*************INSERT********");
+    
     const like = result.rows[0];
     const token = this.generateToken(like.id);
 
@@ -160,6 +154,35 @@ export class PostService {
     return {
       message: 'Like Eliminado correctamente',
       token
+    };
+  }
+
+  async registrarComentario(comentData: ComentData) {
+
+    console.log("*************INSERT*****registrarComentario***");
+    const result = await this.pool.query(
+      `INSERT INTO coments(post_id, usuario, texto)
+        VALUES ($1, $2, $3)
+      RETURNING id, post_id, usuario, texto, creado_at
+      `,
+      [
+        comentData.post_id,
+        comentData.usuario,
+        comentData.texto,
+      ]
+    );
+    console.log("*************INSERT********");
+    const comentario = result.rows[0];
+    const token = this.generateToken(comentario.id);
+
+    return {
+      message: 'Comentario Creado correctamente',
+      token,
+      id: comentario.id,
+      usuario_id: comentario.usuario_id,
+      post_id: comentario.post_id,
+      texto: comentario.texto,
+      creado_at:comentario.creado_at,
     };
   }
 
